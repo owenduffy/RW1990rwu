@@ -28,7 +28,7 @@ void printid(byte id[]){
 char line[80];
 byte crc;
 crc = rw1990.crc8(id, 7);
-sprintf(line,"ID: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X CRC: %02X (%s)\n",id[0],id[1],id[2],id[3],id[4],id[5],id[6],id[7],crc,crc==id[7]?"Good":"Bad");
+sprintf(line,"ID: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X CRC: %02X (%s)\n",id[0],id[1],id[2],id[3],id[4],id[5],id[6],id[7],crc,crc==id[7]?"Good CRC":"Bad CRC");
 CONSOLEPORT.print(line);
 }
 
@@ -154,6 +154,16 @@ byte splitCmdLineArgs(char* buffer, byte bufferLength)
   return countCmdArgs();
 }
 
+//function to write ID bytes with RW1990 (special timing, inversion)
+int writeByte_rw1990(byte data){
+  int data_bit;
+  for(data_bit=0; data_bit<8; data_bit++){
+    rw1990.write_bit_rw1990(data);
+    data=data>>1;
+  }
+  return 0;
+}
+
 void setup(){
 CONSOLEPORT.begin(BAUDRATE);
 while(!CONSOLEPORT)
@@ -171,13 +181,6 @@ byte crc;
 char* commandArg;
 char* pstr;
 
-//    for (byte x = 0; x<8; x++){
-//      writeByte(id2[x]);
-//      CONSOLEPORT.print('*');
-//    }
-//    rw1990.reset();
-//return;
-
 if(readLine(buffer,sizeof(buffer))<1){
   delay(200);
   return;
@@ -186,7 +189,6 @@ if(readLine(buffer,sizeof(buffer))<1){
 //search
 commandArg=getCmdArg(0);
 if(strcmp_P(commandArg,PSTR("search"))==0){
-//  CONSOLEPORT.println("got search cmd\n");
   rw1990.reset_search();
   if (!rw1990.search (id)){
   CONSOLEPORT.println(F("searching..."));
@@ -194,7 +196,7 @@ if(strcmp_P(commandArg,PSTR("search"))==0){
   delay(200);
   }
 else{
-  CONSOLEPORT.print(F("Found ID: "));
+  CONSOLEPORT.print(F("Found "));
   printid(id);
   }
 CONSOLEPORT.println();
@@ -208,13 +210,13 @@ if(strcmp_P(commandArg,PSTR("setid"))==0){
     id2[i]=strtoul(pstr,&pstr,16)&0xff;
     pstr++;
     }
-  CONSOLEPORT.print(F("Set ID: "));
+  CONSOLEPORT.print(F("Set "));
   printid(id2);
   CONSOLEPORT.println();
   return;
   }
 
-//setid
+//set random id
 if(strcmp_P(commandArg,PSTR("random"))==0){
   pstr=getCmdArg(1);
   randomSeed(analogRead(0));
@@ -224,23 +226,23 @@ if(strcmp_P(commandArg,PSTR("random"))==0){
     pstr++;
     }
     id2[7]=rw1990.crc8(id2,7);
-  CONSOLEPORT.print(F("Random set ID: "));
+  CONSOLEPORT.print(F("Random set "));
   printid(id2);
   CONSOLEPORT.println();
   return;
   }
-
 if(strcmp_P(commandArg,PSTR("show"))==0){
   //check crc etc
-  CONSOLEPORT.print(F("Show ID: "));
+  CONSOLEPORT.print(F("Show "));
     printid(id2);
 CONSOLEPORT.println();
 return;
 }
 
+//save last read ID to new
 if(strcmp_P(commandArg,PSTR("save"))==0){
   //check crc etc
-  CONSOLEPORT.print(F("Save ID: "));
+  CONSOLEPORT.print(F("Save "));
   crc = rw1990.crc8(id, 7);
   if(crc==id[7]){
     memcpy(id2,id,sizeof(id2));
@@ -254,8 +256,9 @@ CONSOLEPORT.println();
 return;
 }
 
+//write new to iButton
 if(strcmp_P(commandArg,PSTR("write"))==0){  //check crc etc
-  CONSOLEPORT.print(F("Write ID: "));
+  CONSOLEPORT.print(F("Write "));
   printid(id2);
   crc = rw1990.crc8(id2, 7);
   if(crc==id2[7]){
@@ -268,25 +271,22 @@ if(strcmp_P(commandArg,PSTR("write"))==0){  //check crc etc
     delay(20);
     rw1990.skip();
     delay(20);
-
-    //prepare for write
+    //prepare for ID write
     rw1990.reset();
     rw1990.write(0xD1);
     rw1990.write_bit_rw1990(1);
     rw1990.reset();
-
-    //write
+    //ID write
     rw1990.write(0xD5);
     for (byte x = 0; x<8; x++){
       writeByte_rw1990(id2[x]);
       }
     rw1990.reset();
-
-    //end write
+    //end ID write
     rw1990.write(0xD1);
     rw1990.write_bit_rw1990(0);
     rw1990.reset();
-
+    //verify
     rw1990.write(0x33);
     for (byte i=0; i<8; i++){
     id[i]=rw1990.read();
@@ -307,13 +307,4 @@ if(strcmp_P(commandArg,PSTR("write"))==0){  //check crc etc
   return;
   }
 CONSOLEPORT.println(F("Unknown command.\n"));  
-}
-
-int writeByte_rw1990(byte data){
-  int data_bit;
-  for(data_bit=0; data_bit<8; data_bit++){
-    rw1990.write_bit_rw1990(data);
-    data=data>>1;
-  }
-  return 0;
 }
