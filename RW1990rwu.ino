@@ -2,6 +2,8 @@
 //Some code derived from OpenLog
 //Owen Duffy 20190905
 //depends on enhanced OneWIre lib: https://github.com/owenduffy/OneWire
+
+#define OWPIN 11
  
 #include <OneWire.h>
 #include <stdlib.h>
@@ -20,7 +22,7 @@
 #endif
 #define BAUDRATE 115200
 
-OneWire rw1990 (8,20);
+OneWire rw1990 (OWPIN,20);
 byte id[8]; //array to store the Ibutton ID.
 byte id2[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
