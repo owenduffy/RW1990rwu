@@ -4,6 +4,11 @@
 //depends on enhanced OneWIre lib: https://github.com/owenduffy/OneWire
 
 #define OWPIN 11
+#define GLEDPIN 12
+#define RLEDPIN 13
+#define OFF 0
+#define GREEN 1
+#define RED 2
  
 #include <OneWire.h>
 #include <stdlib.h>
@@ -31,6 +36,7 @@ char line[80];
 byte crc;
 crc = rw1990.crc8(id, 7);
 sprintf(line,"ID: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X CRC: %02X (%s)\n",id[0],id[1],id[2],id[3],id[4],id[5],id[6],id[7],crc,crc==id[7]?"Good CRC":"Bad CRC");
+led(crc==id[7]?GREEN:RED);
 CONSOLEPORT.print(line);
 }
 
@@ -166,7 +172,27 @@ int writeByte_rw1990(byte data){
   return 0;
 }
 
+void led(int state){
+switch(state){
+  case RED:
+    digitalWrite(RLEDPIN,HIGH);
+    digitalWrite(GLEDPIN,LOW);
+    break;
+  case GREEN:
+    digitalWrite(RLEDPIN,LOW);
+    digitalWrite(GLEDPIN,HIGH);
+    break;
+  case OFF:
+    digitalWrite(GLEDPIN,LOW);
+    digitalWrite(GLEDPIN,LOW);
+    break;
+  }
+}
+
 void setup(){
+pinMode(GLEDPIN,OUTPUT);
+pinMode(RLEDPIN,OUTPUT);
+led(GREEN);
 CONSOLEPORT.begin(BAUDRATE);
 while(!CONSOLEPORT)
   if (millis()>5000){
@@ -178,7 +204,7 @@ CONSOLEPORT.println(F("\n\nRW1990rw v0.1\n\n"));
 
 void loop(){
 char buffer[80];
-int i;
+int i,j;
 byte crc;
 char* commandArg;
 char* pstr;
@@ -187,34 +213,50 @@ if(readLine(buffer,sizeof(buffer))<1){
   delay(200);
   return;
   }
-
+led(OFF);
 //search
 commandArg=getCmdArg(0);
 if(strcmp_P(commandArg,PSTR("search"))==0){
-  rw1990.reset_search();
-  if (!rw1990.search (id)){
-  CONSOLEPORT.println(F("searching..."));
+  if(rw1990.reset()){
+    CONSOLEPORT.println(F("searching..."));
+    rw1990.reset_search();
+    if (!rw1990.search (id)){
 //  rw1990.reset_search();
-  delay(200);
+    delay(200);
+    led(RED);
+    CONSOLEPORT.println(F("Failed."));
+    }
+  else{
+//    led(GREEN);
+    CONSOLEPORT.print(F("Found "));
+    printid(id);
+    }
+  CONSOLEPORT.println();
   }
-else{
-  CONSOLEPORT.print(F("Found "));
-  printid(id);
-  }
-CONSOLEPORT.println();
+  else{
+    led(RED);
+    CONSOLEPORT.println(F("Failed."));
+    }
 return;
 }
 
 //setid
 if(strcmp_P(commandArg,PSTR("setid"))==0){
   pstr=getCmdArg(1);
+  j=0;
   for(i=0;i<8;i++){
     id2[i]=strtoul(pstr,&pstr,16)&0xff;
+    j|=id2[i];
     pstr++;
     }
-  CONSOLEPORT.print(F("Set "));
-  printid(id2);
-  CONSOLEPORT.println();
+  if(j){
+    CONSOLEPORT.print(F("Set "));
+    printid(id2);
+    CONSOLEPORT.println();
+    }
+  else{
+    led(RED);
+    }
   return;
   }
 
@@ -244,16 +286,17 @@ return;
 //save last read ID to new
 if(strcmp_P(commandArg,PSTR("save"))==0){
   //check crc etc
-  CONSOLEPORT.print(F("Save "));
+  CONSOLEPORT.println(F("Save "));
   crc = rw1990.crc8(id, 7);
   if(crc==id[7]){
     memcpy(id2,id,sizeof(id2));
-    CONSOLEPORT.println(F("New ID saved."));
-    }
+    led(GREEN);
+    CONSOLEPORT.print(F("New ID saved "));
+  }
   else{
-    printid(id2);
-    CONSOLEPORT.println(F("Not saved."));
+    CONSOLEPORT.print(F("Not saved "));
     }
+  printid(id2);
 CONSOLEPORT.println();
 return;
 }
@@ -299,6 +342,7 @@ if(strcmp_P(commandArg,PSTR("write"))==0){  //check crc etc
     CONSOLEPORT.println();
       }
     else{
+     led(GREEN);
      CONSOLEPORT.println(F("Verified OK.\n"));
       }
     }
