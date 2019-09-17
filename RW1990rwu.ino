@@ -338,22 +338,7 @@ int show(){
   return;
 }
 
-void setup(){
-  digitalWrite(BEEPPIN,LOW);
-  pinMode(BEEPPIN,OUTPUT);
-  pinMode(GLEDPIN,OUTPUT);
-  pinMode(RLEDPIN,OUTPUT);
-  led(GREEN);
-  CONSOLEPORT.begin(BAUDRATE);
-  while(!CONSOLEPORT)
-    if (millis()>5000){
-    CONSOLEPORT.end();
-    break; //serial port does not seem to start, not plugged in?
-    }
-  CONSOLEPORT.println(F("\n\nRW1990rw v0.1\n\n"));
-}
-
-void loop(){
+int proccmd(){
   char buffer[80];
   int i,j;
 //  byte crc;
@@ -401,4 +386,23 @@ void loop(){
     }
     
   CONSOLEPORT.println(F("Unknown command.\n"));  
+}
+
+void setup(){
+  digitalWrite(BEEPPIN,LOW);
+  pinMode(BEEPPIN,OUTPUT);
+  pinMode(GLEDPIN,OUTPUT);
+  pinMode(RLEDPIN,OUTPUT);
+  led(GREEN);
+  CONSOLEPORT.begin(BAUDRATE);
+  while(!CONSOLEPORT)
+    if (millis()>5000){
+    CONSOLEPORT.end();
+    break; //serial port does not seem to start, not plugged in?
+    }
+  CONSOLEPORT.println(F("\n\nRW1990rw v0.1\n\n"));
+}
+
+void loop(){
+  procmd();
 }
