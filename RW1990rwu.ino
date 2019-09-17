@@ -3,6 +3,7 @@
 //Owen Duffy 20190905
 //depends on enhanced OneWIre lib: https://github.com/owenduffy/OneWire
 
+#define BEEPPIN 10
 #define OWPIN 11
 #define GLEDPIN 12
 #define RLEDPIN 13
@@ -169,14 +170,25 @@ int writeByte_rw1990(byte data){
 }
 
 void led(int state){
+  int i;
   switch(state){
     case RED:
       digitalWrite(RLEDPIN,HIGH);
       digitalWrite(GLEDPIN,LOW);
+      for(i=3;i--;){
+        digitalWrite(BEEPPIN,HIGH);
+        delay(100);
+        digitalWrite(BEEPPIN,LOW);
+        delay(100);
+        }
       break;
     case GREEN:
       digitalWrite(RLEDPIN,LOW);
       digitalWrite(GLEDPIN,HIGH);
+      digitalWrite(BEEPPIN,HIGH);
+      delay(500);
+      digitalWrite(BEEPPIN,LOW);
+      delay(100);
       break;
     case OFF:
       digitalWrite(GLEDPIN,LOW);
@@ -291,6 +303,7 @@ int save(){
   }
   else{
     CONSOLEPORT.print(F("Not saved "));
+    led(RED);
     }
   printid(id2);
   CONSOLEPORT.println();
@@ -326,6 +339,8 @@ int show(){
 }
 
 void setup(){
+  digitalWrite(BEEPPIN,LOW);
+  pinMode(BEEPPIN,OUTPUT);
   pinMode(GLEDPIN,OUTPUT);
   pinMode(RLEDPIN,OUTPUT);
   led(GREEN);
