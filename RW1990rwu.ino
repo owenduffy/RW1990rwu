@@ -236,11 +236,12 @@ int write(byte *id2){
     if(strncmp(id,id2,sizeof(id))){
       CONSOLEPORT.print(F("Bad read back: "));
       printid(id);
-    CONSOLEPORT.println();
+      led(RED);
+      CONSOLEPORT.println();
       }
     else{
-     led(GREEN);
-     CONSOLEPORT.println(F("Verified OK.\n"));
+      led(GREEN);
+      CONSOLEPORT.println(F("Verified OK.\n"));
       }
     }
   else{
@@ -274,7 +275,7 @@ int search(){
 return;
 }
 
-setrandom(){
+void setrandom(){
   int i;
   char* pstr;
   pstr=getCmdArg(1);
@@ -404,5 +405,5 @@ void setup(){
 }
 
 void loop(){
-  procmd();
+  proccmd();
 }
