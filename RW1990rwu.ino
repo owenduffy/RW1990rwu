@@ -160,13 +160,13 @@ byte splitCmdLineArgs(char* buffer, byte bufferLength){
 }
 
 //function to write ID bytes with RW1990 (special timing, inversion)
-int writeByte_rw1990(byte data){
+void writeByte_rw1990(byte data){
   int data_bit;
   for(data_bit=0; data_bit<8; data_bit++){
     rw1990.write_bit_rw1990(data);
     data=data>>1;
   }
-  return 0;
+  return;
 }
 
 void led(int state){
@@ -198,7 +198,7 @@ void led(int state){
 }
 
 
-int write(byte *id2){
+void write(byte *id2){
   byte crc;
   CONSOLEPORT.print(F("Write "));
   printid(id2);
@@ -251,7 +251,7 @@ int write(byte *id2){
   return;
 }
 
-int search(){
+void search(){
   if(rw1990.reset()){
     CONSOLEPORT.println(F("searching..."));
     rw1990.reset_search();
@@ -292,7 +292,7 @@ void setrandom(){
   return;
 }
 
-int save(){
+void save(){
   byte crc;
   //check crc etc
   CONSOLEPORT.println(F("Save "));
@@ -311,7 +311,7 @@ int save(){
   return;
 }
 
-int setid(){
+void setid(){
   int i,j;
   char* pstr;
   pstr=getCmdArg(1);
@@ -332,14 +332,14 @@ int setid(){
   return;
 }
 
-int show(){
+void show(){
   CONSOLEPORT.print(F("Show "));
   printid(id2);
   CONSOLEPORT.println();
   return;
 }
 
-int proccmd(){
+void proccmd(){
   char buffer[80];
   int i,j;
 //  byte crc;
