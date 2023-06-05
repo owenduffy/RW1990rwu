@@ -339,6 +339,11 @@ void show(){
   return;
 }
 
+void help(){
+  CONSOLEPORT.println(F("Commands: search, setid, random, show, save, write.\n"));
+  return;
+}
+
 void proccmd(){
   char buffer[80];
   int i,j;
@@ -352,6 +357,12 @@ void proccmd(){
     }
   led(OFF);
   commandArg=getCmdArg(0);
+  //help
+  if(strcmp_P(commandArg,PSTR("help"))==0){
+    help();
+    return;
+    }
+  
   //search
   if(strcmp_P(commandArg,PSTR("search"))==0){
     search();
@@ -401,7 +412,7 @@ void setup(){
     CONSOLEPORT.end();
     break; //serial port does not seem to start, not plugged in?
     }
-  CONSOLEPORT.println(F("\n\nRW1990rw v0.1\n\n"));
+  CONSOLEPORT.println(F("\n\nRW1990rw v0.2\n\n"));
 }
 
 void loop(){
