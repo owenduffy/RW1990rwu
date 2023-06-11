@@ -28,7 +28,7 @@
 #endif
 #define BAUDRATE 115200
 
-OneWire rw1990 (OWPIN,20);
+OneWire rw1990 (OWPIN,50);
 byte id[8]; //array to store the Ibutton ID.
 byte id2[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
@@ -412,7 +412,7 @@ void setup(){
     CONSOLEPORT.end();
     break; //serial port does not seem to start, not plugged in?
     }
-  CONSOLEPORT.println(F("\n\nRW1990rw v0.2\n\n"));
+  CONSOLEPORT.println(F("\n\nRW1990rw v0.3\n\n"));
 }
 
 void loop(){
