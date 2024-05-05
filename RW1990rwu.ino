@@ -351,6 +351,7 @@ void proccmd(){
   char* commandArg;
 //  char* pstr;
   
+  CONSOLEPORT.print(F("> "));  
   if(readLine(buffer,sizeof(buffer))<1){
     delay(200);
     return;
@@ -412,7 +413,8 @@ void setup(){
     CONSOLEPORT.end();
     break; //serial port does not seem to start, not plugged in?
     }
-  CONSOLEPORT.println(F("\n\nRW1990rw v0.3\n\n"));
+  CONSOLEPORT.println(F("\n\nRW1990rw v0.4\n\n"));
+  help();
 }
 
 void loop(){
